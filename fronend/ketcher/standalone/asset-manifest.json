@@ -1,0 +1,22 @@
+{
+  "files": {
+    "main.css": "./static/css/main.de62a271.css",
+    "main.js": "./static/js/main.cca1a147.js",
+    "popup.css": "./static/css/popup.de62a271.css",
+    "popup.js": "./static/js/popup.35b82967.js",
+    "duo.css": "./static/css/duo.de62a271.css",
+    "duo.js": "./static/js/duo.cf9f8819.js",
+    "static/js/58.d9a0d434.chunk.js": "./static/js/58.d9a0d434.chunk.js",
+    "static/js/412.aebbbad4.chunk.js": "./static/js/412.aebbbad4.chunk.js",
+    "static/js/269.f5b4f042.chunk.js": "./static/js/269.f5b4f042.chunk.js",
+    "static/js/159.79fa9732.chunk.js": "./static/js/159.79fa9732.chunk.js",
+    "popup.html": "./popup.html",
+    "duo.html": "./duo.html",
+    "index.html": "./index.html",
+    "serve.json": "./serve.json"
+  },
+  "entrypoints": [
+    "static/css/main.de62a271.css",
+    "static/js/main.cca1a147.js"
+  ]
+}

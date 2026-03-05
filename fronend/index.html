@@ -1,0 +1,1810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OGT pIC50 Predictor</title>
+    <style>
+        /* 网格背景样式 */
+        body {
+            background-color: #f4f7f9;
+            background-image: 
+                linear-gradient(rgba(40, 167, 70, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(40, 167, 70, 0.05) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-attachment: fixed;
+        }
+        
+        /* 导航栏样式 */
+        .navbar {
+            background: linear-gradient(135deg, #1ba36b 0%, #0f7d50 100%);
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            position: sticky;
+            top: 0;
+            height: 80px;
+            line-height: 40px;
+            font-size: 24px;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+        .navbar.scrolled {
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #18945e 0%, #0d6e45 100%);
+        }
+        .navbar-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .navbar-logo {
+            float: left;
+            color: white;
+            text-align: center;
+            padding: 16px 18px;
+            text-decoration: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+        .navbar-logo:hover {
+            transform: scale(1.03);
+        }
+        .navbar-logo i {
+            margin-right: 8px;
+            font-size: 2.5rem;
+        }
+        .navbar-links {
+            float: right;
+            display: flex;
+            align-items: center;
+        }
+        .navbar-links a {
+            float: left;
+            color: white;
+            text-align: center;
+            padding: 18px 20px;
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .navbar-links a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: rgba(255,255,255,0.8);
+            transition: width 0.3s ease;
+        }
+        .navbar-links a:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: translateY(-2px);
+        }
+        .navbar-links a:hover::after {
+            width: 100%;
+        }
+        .navbar-links a.active {
+            background-color: rgba(255,255,255,0.15);
+            font-weight: 500;
+        }
+        .navbar-links a.active::after {
+            width: 100%;
+            background-color: white;
+        }
+        .navbar-toggle {
+            display: none;
+            float: right;
+            color: white;
+            padding: 18px 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 4px;
+        }
+        .navbar-toggle:hover {
+            background-color: rgba(255,255,255,0.1);
+            transform: rotate(15deg);
+        }
+
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            color: #333; 
+            min-height: 100vh;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 2rem auto; 
+            background: white; 
+            padding: 2rem; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
+            position: relative;
+            z-index: 10;
+        }
+        h1 { 
+            color: #1ba36b; 
+            margin-top: 0;
+        }
+        h2 { 
+            color: #1ba36b; 
+        }
+        .input-section h2 {
+            color: #1ba36b;
+            font-weight: bold;
+        }
+        .grid { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            grid-template-rows: auto auto; 
+            gap: 2rem; 
+            align-items: start; 
+        }
+        .input-section { 
+            padding: 1.5rem; 
+            border: 1px solid #e0e0e0; 
+            border-radius: 8px;
+            background-color: #28a74623; 
+        }
+        textarea { 
+            width: 100%; 
+            box-sizing: border-box; 
+            height: 150px; 
+            padding: 10px; 
+            border-radius: 4px; 
+            border: 1px solid #ccc; 
+            font-family: monospace; 
+        }
+        .form-group { 
+            margin-bottom: 1rem; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 0.5rem; 
+            font-weight: bold; 
+        }
+        select, input[type="file"], input[type="text"] { 
+            width: 100%; 
+            padding: 0.5rem; 
+            border-radius: 4px; 
+            border: 1px solid #ccc; 
+            box-sizing: border-box; 
+        }
+        button { 
+            background-color: #1ba36b; 
+            color: white; 
+            border: none; 
+            padding: 0.8rem 1.5rem; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            transition: background-color 0.2s; 
+            margin-top: 0.5rem; 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        button:hover { 
+            background-color: #309f5b; 
+            transform: translateY(-2px);
+            box-shadow: 0 3px 8px rgba(27, 163, 107, 0.2);
+        }
+        .download-btn {
+            margin: 0.5rem;
+            padding: 0.8rem 1.2rem;
+            background-color: #28a745;
+            border: 1px solid #28a745;
+        }
+        .download-btn:hover {
+            background-color: #218838;
+            border-color: #1e7e34;
+        }
+        .download-btn i {
+            font-size: 1.1rem;
+        }
+
+        #results-table, #lipinski-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1rem; 
+            vertical-align: middle; 
+        }
+        #results-table th, #results-table td, #lipinski-table th, #lipinski-table td { 
+            border: 1px solid #dddddd; 
+            padding: 12px; 
+            text-align: center; 
+            vertical-align: middle; 
+            background-color: #28a74623;
+        }
+        #results-table th, #lipinski-table th { 
+            background-color: #28a74580; 
+            vertical-align: middle; 
+        }
+        .sortable-header {
+            cursor: pointer;
+            position: relative;
+            padding-right: 20px;
+            user-select: none;
+            transition: background-color 0.2s ease;
+            background-color: #28a74590;
+        }
+        .sortable-header:hover {
+            background-color: #28a745b0;
+        }
+        .sort-indicator {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.8em;
+            opacity: 0.9;
+            transition: opacity 0.2s ease;
+        }
+        #results-table img { 
+            display: block; 
+            margin: auto; 
+        }
+        .pagination { 
+            margin-top: 1rem; 
+            text-align: center; 
+        }
+        .pagination button { 
+            margin: 0 5px; 
+            background-color: #1ba36b; 
+        }
+        .pagination button:disabled { 
+            background-color: #ccc; 
+            cursor: not-allowed; 
+        }
+        #loader { 
+            display: none; 
+            text-align: center; 
+            padding: 2rem; 
+        }
+        .spinner { 
+            border: 4px solid rgba(0, 0, 0, 0.1); 
+            width: 36px; 
+            height: 36px; 
+            border-radius: 50%; 
+            border-left-color: #3f51b5; 
+            animation: spin 1s ease infinite; 
+            margin: auto; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .model-info { 
+            font-size: 0.9rem; 
+            color: #666; 
+            margin-top: 0.3rem; 
+        }
+        .radio-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 0.8rem; 
+            margin-top: 0.5rem; 
+        }
+        .radio-item { 
+            display: flex; 
+            align-items: center; 
+        }
+        .radio-item input { 
+            margin-right: 0.5rem; 
+            vertical-align: top; 
+            appearance: auto; 
+            width: 16px; 
+            height: 16px; 
+            border: 1px solid #999; 
+            border-radius: 50%; 
+            outline: none;
+            cursor: pointer;
+            background-color: #1ba36b;
+            color: #1ba36b;
+        }
+        .radio-item input:checked {
+            background-color: #1ba36b; 
+            border-color: #1ba36b;
+        }
+        .radio-item label {
+            vertical-align: middle; 
+            cursor: pointer;
+            font-size: 18px; 
+        }
+        .tab-container {
+            display: flex;
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            scrollbar-width: thin;
+            flex-wrap: nowrap;
+        }
+        .tab-button {
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-bottom: none;
+            cursor: pointer;
+            padding: 10px 20px;
+            margin-right: 5px;
+            border-radius: 5px 5px 0 0;
+            white-space: nowrap;
+            color: #000000;
+            transition: all 0.2s ease;
+        }
+        .tab-button.active {
+            background-color: #1ba36b;
+            color: white;
+            border-color: #1ba36b;
+            border-bottom: 1px solid #1ba36b;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #ketcher-frame {
+            width: 100%;
+            height: 450px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .csv-hint {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* 折叠面板样式 */
+        .collapse-panel {
+            width: 100%;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #28a74623;
+            padding: 0;
+            margin: 0;
+        }
+        .collapse-header {
+            width: 100%;
+            padding: 1.5rem;
+            margin: 0;
+            background-color: #28a74623;
+            border: none;
+            border-bottom: 1px solid #e0e0e0;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1ba36b;
+            box-sizing: border-box;
+            outline: none;
+            -webkit-appearance: none;
+        }
+        .collapse-header:focus {
+            outline: none;
+        }
+        .collapse-header:hover {
+            background-color: #28a74633;
+        }
+        .collapse-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.5rem;
+        }
+        .collapse-icon.rotate {
+            transform: rotate(180deg);
+        }
+        .collapse-content {
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: 
+                padding 0.3s ease, 
+                max-height 0.3s ease;
+        }
+        .collapse-content.show {
+            padding: 1.5rem;
+            max-height: 1000px;
+        }
+
+        /* 图表容器和自适应样式 */
+        .chart-container {
+            width: 100%;
+            margin-top: 1rem;
+            min-width: 300px;
+            max-width: 100%;
+            position: relative;
+            height: 0;
+            padding-bottom: 56.25%;
+        }
+        #distributionChart {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+
+        /* 页面内容样式 */
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* 首页和关于页样式 */
+        .home-section, .about-section {
+            line-height: 1.6;
+        }
+        .feature-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .feature-list li {
+            margin-bottom: 1rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+        .feature-list li:before {
+            content: "•";
+            color: #1ba36b;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        .about-section h3 {
+            color: #1ba36b;
+        }
+        .team-member {
+            margin-bottom: 1.5rem;
+        }
+        .about-image-container {
+            margin: 2rem 0;
+            text-align: center;
+        }
+        .about-image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-height: 400px;
+        }
+        .about-image-caption {
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: #666;
+            font-style: italic;
+        }
+        .home-button-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1.5rem;
+        }
+
+        /* 下载标签页样式 */
+        #download-tab-content {
+            padding: 1.5rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background-color: #28a74615;
+            margin-top: 1rem;
+        }
+        .download-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+        .download-filter-group {
+            flex: 1;
+            min-width: 250px;
+        }
+        .download-note {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #e8f5e9;
+            border-left: 4px solid #1ba36b;
+            border-radius: 4px;
+            color: #2e7d32;
+            font-size: 0.95rem;
+        }
+        .download-note i {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+        .download-preview {
+            margin-top: 1rem;
+            padding: 1rem;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #fff;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .download-preview h4 {
+            margin-top: 0;
+            color: #1ba36b;
+            font-size: 1rem;
+        }
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .preview-table th, .preview-table td {
+            border: 1px solid #e0e0e0;
+            padding: 6px 8px;
+            text-align: left;
+        }
+        .preview-table th {
+            background-color: #28a74520;
+            font-weight: bold;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            /* 调整网格大小以适应移动设备 */
+            body {
+                background-size: 15px 15px;
+            }
+            
+            .chart-container {
+                padding-bottom: 75%;
+            }
+            
+            .navbar-links {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                background: linear-gradient(180deg, #1ba36b 0%, #0f7d50 100%);
+            }
+            .navbar-links.show {
+                display: flex;
+                animation: slideDown 0.3s ease;
+            }
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .navbar-links a {
+                float: none;
+                display: block;
+                text-align: left;
+                padding: 15px 20px;
+                border-bottom: 1px solid rgba(255,255,255,0.1);
+            }
+            .navbar-links a:last-child {
+                border-bottom: none;
+            }
+            .navbar-links a::after {
+                display: none;
+            }
+            .navbar-toggle {
+                display: block;
+            }
+            .navbar-logo {
+                font-size: 1.2rem;
+                padding: 17px 18px;
+            }
+            .navbar-container {
+                flex-wrap: wrap;
+            }
+
+            .download-options {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .download-btn {
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body>
+    <nav class="navbar" id="mainNavbar">
+        <div class="navbar-container">
+            <a href="#" class="navbar-logo" onclick="navigateTo('home')">
+                <i class="fa fa-flask"></i>
+                OGT pIC50 Predictor
+            </a>
+            <div class="navbar-toggle" onclick="toggleNavbar()">
+                <i class="fa fa-bars"></i>
+            </div>
+            <div class="navbar-links" id="navbarLinks">
+                <a href="#" class="active" onclick="navigateTo('home')">
+                    <i class="fa fa-home"></i> Home
+                </a>
+                <a href="#" onclick="navigateTo('predict')">
+                    <i class="fa fa-calculator"></i> Predict
+                </a>
+                <a href="#" onclick="navigateTo('about')">
+                    <i class="fa fa-info-circle"></i> About
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- 首页内容 -->
+        <div id="home-page" class="page-content active">
+            <div class="home-section">
+                <h1>Welcome to OGT pIC50 Predictor</h1>
+                <p>This advanced tool allows researchers to predict the pIC50 values for O-GlcNAc transferase (OGT) inhibitors using state-of-the-art machine learning models. Whether you're working on drug discovery or biochemical research, our predictor can help accelerate your workflow.</p>
+               <div class="about-image-container">
+                    <img src="image/4.gif" 
+                         alt="pIC50 Value Illustration - Relationship between inhibitor concentration and biological activity">
+                    <p class="about-image-caption">
+                        O-GlcNAc transferase (OGT)
+                    </p>
+                </div>                
+                <h2>Key Features</h2>
+                <ul class="feature-list">
+                    <li><strong>Multiple Input Methods</strong> - Enter SMILES strings, draw molecules, or upload CSV files</li>
+                    <li><strong>Advanced Models</strong> - Choose from several pre-trained predictive models</li>
+                    <li><strong>Lipinski's Rule Analysis</strong> - Automatically check drug-likeness properties</li>
+                    <li><strong>Data Visualization</strong> - View distribution charts of predicted values</li>
+                    <li><strong>Sortable Results</strong> - Analyze results by pIC50, molecular weight, and other properties</li>
+                    <li><strong>Multiple Formats Export</strong> - Download results as CSV, Excel, or JSON</li>
+                </ul>
+                
+                <h2>Get Started</h2>
+                <p>Click the "Predict" tab above to start using the predictor, or learn more about the tool in the "About" section.</p>
+                <button onclick="navigateTo('predict')" style="margin-top: 1rem;">Go to Predictor <i class="fa fa-arrow-right"></i></button>
+                <button onclick="navigateTo('about')" style="background-color: #3f51b5;"> <i class="fa fa-info-circle"></i> Learn More (About)</button>
+            </div>
+        </div>
+
+        <!-- 预测页面内容 -->
+        <div id="predict-page" class="page-content">
+            <h1>Predict OGT pIC50 Values</h1>
+            
+            <div class="grid">
+                <div class="input-section">
+                    <h2>Input Molecule</h2>
+                    
+                    <div class="form-group">
+                        <label for="model-select">Choose a predictive model</label>
+                        <select id="model-select">
+                            <option value="" disabled>loading...</option>
+                        </select>
+                        <p class="model-info" id="model-info">Please select a forecast model</p>
+                    </div>
+                    
+                    <div class="tab-container">
+                        <button class="tab-button active" onclick="openInputTab(event, 'smiles-input-tab')">Input SMILES</button>
+                        <button class="tab-button" onclick="openInputTab(event, 'draw-molecule-tab')">Draw Molecule</button>
+                        <button class="tab-button" onclick="openInputTab(event, 'upload-csv-tab')">Upload CSV File</button>
+                    </div>
+
+                    <div id="smiles-input-tab" class="tab-content active">
+                        <div class="form-group">
+                            <label for="molecule-name">Molecule Name (optional)</label>
+                            <input type="text" id="molecule-name" placeholder="Enter a name for your molecule">
+                        </div>
+                        <div class="form-group">
+                            <label for="smiles-input">Input SMILES</label>
+                            <textarea id="smiles-input" placeholder="eg: c1ccccc1"></textarea>
+                            <button onclick="submitSmiles()">Predict from text</button>
+                        </div>
+                    </div>
+
+                    <div id="draw-molecule-tab" class="tab-content">
+                        <div class="form-group">
+                            <label for="draw-molecule-name">Molecule Name (optional)</label>
+                            <input type="text" id="draw-molecule-name" placeholder="Enter a name for your molecule">
+                        </div>
+                        <div class="form-group">
+                            <label>Molecule Drawing (use Ketcher)</label>
+                            <iframe id="ketcher-frame" src="./ketcher/index.html"></iframe>
+                            <button onclick="submitDrawing()">Predict from Drawing</button>
+                        </div>
+                    </div>
+
+                    <div id="upload-csv-tab" class="tab-content">
+                        <div class="form-group">
+                            <label for="csv-upload">Upload CSV File (required columns: "SMILES", optional: "Molecule Name")</label>
+                            <input type="file" id="csv-upload" accept=".csv">
+                            <p class="csv-hint">
+                                Hint: CSV must contain a column named "SMILES" (case-sensitive). Include "Molecule Name" column to specify names.
+                            </p>
+                            <button onclick="submitCsv()">Predict from CSV</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="collapse-panel">
+                    <button class="collapse-header" onclick="toggleChartPanel()">
+                        <span>Prediction value distribution chart</span>
+                        <span class="collapse-icon">▼</span>
+                    </button>
+                    <div class="collapse-content" id="chart-content">
+                        <div class="form-group">
+                            <label>Chart Model Filter</label>
+                            <div class="radio-group" id="chart-model-select">
+                                <div class="radio-item">
+                                    <input type="radio" id="chart-all-models" name="chart-model" value="" checked>
+                                    <label for="chart-all-models">All Models</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="chart-rdkit" name="chart-model" value="rdkit_2d_normalizedModel">
+                                    <label for="chart-rdkit">rdkit_2d_normalizedModel</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="chart-daylight" name="chart-model" value="DaylightModel">
+                                    <label for="chart-daylight">DaylightModel</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="chart-erg" name="chart-model" value="ErGModel">
+                                    <label for="chart-erg">ErGModel</label>
+                                </div>
+                                <div class="radio-item">
+                                    <input type="radio" id="chart-morgan" name="chart-model" value="MorganModel">
+                                    <label for="chart-morgan">MorganModel</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="distributionChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loader">
+                <div class="spinner"></div>
+                <p>Prediction in progress...</p>
+            </div>
+            <div id="results-section" style="margin-top: 2rem;">
+                <h2>Prediction Results</h2>
+                <div class="form-group">
+                    <label for="results-model-filter">Result Model Filtering</label>
+                    <select id="results-model-filter">
+                        <option value="">All Models</option>
+                    </select>
+                </div>
+                
+                <div class="tab-container">
+                    <button class="tab-button active" onclick="openResultsTab(event, 'prediction-results-tab')">Prediction Results</button>
+                    <button class="tab-button" onclick="openResultsTab(event, 'lipinski-rules-tab')">Lipinski's Rule of Five</button>
+                    <button class="tab-button" onclick="openResultsTab(event, 'download-tab')">
+                        <i class="fa fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div id="prediction-results-tab" class="tab-content active">
+                    <table id="results-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Molecule Name</th>
+                                <th>SMILES</th>
+                                <th class="sortable-header" data-sort="pic50">
+                                    Predicted pIC50
+                                    <span class="sort-indicator"></span>
+                                </th>
+                                <th>Models</th>
+                                <th>Molecular Structure</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="lipinski-rules-tab" class="tab-content">
+                    <table id="lipinski-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Molecule Name</th>
+                                <th>SMILES</th>
+                                <th class="sortable-header" data-sort="mol_wt">
+                                    Molecular Weight
+                                    <span class="sort-indicator"></span>
+                                </th>
+                                <th class="sortable-header" data-sort="logp">
+                                    LogP
+                                    <span class="sort-indicator"></span>
+                                </th>
+                                <th class="sortable-header" data-sort="hbd">
+                                    H-Bond Donors
+                                    <span class="sort-indicator"></span>
+                                </th>
+                                <th class="sortable-header" data-sort="hba">
+                                    H-Bond Acceptors
+                                    <span class="sort-indicator"></span>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="lipinski-body"></tbody>
+                    </table>
+                </div>
+
+                <div id="download-tab" class="tab-content">
+                    <div id="download-tab-content">
+                        <h3 style="color: #1ba36b; margin-top: 0;">Download Prediction Results</h3>
+                        <p>Select file format and filter options to download the results:</p>
+                        
+                        <div class="download-options">
+                            <div class="download-filter-group">
+                                <label for="download-format">Select File Format</label>
+                                <select id="download-format" class="form-control">
+                                    <option value="csv" selected>CSV (Comma Separated Values)</option>
+                                    <option value="excel">Excel (.xlsx)</option>
+                                    <option value="json">JSON (JavaScript Object Notation)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="download-filter-group">
+                                <label for="download-model-filter">Filter by Model</label>
+                                <select id="download-model-filter" class="form-control">
+                                    <option value="">All Models</option>
+                                </select>
+                            </div>
+                            
+                            <div class="download-filter-group" style="display: flex; align-items: flex-end;">
+                                <button id="download-btn" class="download-btn" onclick="downloadResults()" disabled>
+                                    <i class="fa fa-download"></i> Download Results
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="download-preview">
+                            <h4><i class="fa fa-eye"></i> Data Preview (First 5 Rows)</h4>
+                            <div id="download-preview-content">
+                                <p>No results available to preview.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="download-note">
+                            <i class="fa fa-info-circle"></i>
+                            <strong>Note:</strong> 
+                            - CSV files are compatible with all spreadsheet software (Excel, Google Sheets, etc.)<br>
+                            - Excel files include formatted tables for easier analysis<br>
+                            - JSON files are suitable for programmatic use (e.g., Python, R)<br>
+                            - Downloaded data includes all prediction results (not just current page)
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination" id="pagination-controls"></div>
+            </div>
+        </div>
+
+        <!-- 关于页面内容 -->
+        <div id="about-page" class="page-content">
+            <div class="about-section">
+                <h1>About OGT pIC50 Predictor</h1>
+                
+                <h2>What is OGT?</h2>
+                <p>O-GlcNAc transferase (OGT) is an enzyme that catalyzes the addition of O-linked β-N-acetylglucosamine (O-GlcNAc) to serine or threonine residues of many nuclear and cytoplasmic proteins. It plays a crucial role in various cellular processes and has been implicated in several diseases, making it an important therapeutic target.</p>
+                
+                <h2>About pIC50 Prediction</h2>
+                <p>The pIC50 value is a negative logarithmic measure of the potency of a substance in inhibiting a specific biological or biochemical function. It is calculated as -log10(IC50), where IC50 is the concentration of a substance required to inhibit a given biological process by 50%.</p>
+                <p>Our predictor uses machine learning models trained on known OGT inhibitors to predict pIC50 values for new compounds, helping researchers prioritize candidates for further study.</p>
+                <div class="about-image-container">
+                    <img src="image/image1.png" 
+                         alt="pIC50 Value Illustration - Relationship between inhibitor concentration and biological activity">
+                    <p class="about-image-caption">
+                        OGT pIC50 prediction model flow chart
+                    </p>
+                </div>
+
+
+                <h2>Models Used</h2>
+                <p>The tool incorporates several predictive models based on different molecular descriptors:</p>
+                <ul class="feature-list">
+                    <li><strong>rdkit_2d_normalizedModel</strong> - Uses normalized 2D molecular descriptors from RDKit</li>
+                    <li><strong>DaylightModel</strong> - Based on Daylight fingerprints</li>
+                    <li><strong>ErGModel</strong> - Uses ErG fingerprints</li>
+                    <li><strong>MorganModel</strong> - Based on Morgan circular fingerprints</li>
+                </ul>
+                
+                <h2>Key Features</h2>
+                <ul class="feature-list">
+                    <li><strong>Multiple Input Methods</strong> - Support for SMILES input, molecule drawing, and CSV upload</li>
+                    <li><strong>Comprehensive Analysis</strong> - Includes Lipinski's Rule of Five assessment for drug-likeness</li>
+                    <li><strong>Flexible Export</strong> - Download results in CSV, Excel, or JSON formats for further analysis</li>
+                    <li><strong>Interactive Visualization</strong> - Distribution charts to visualize prediction trends</li>
+                </ul>
+                
+                
+                <h2>Contact Us</h2>
+                <p>For questions, feedback, or collaboration opportunities, please contact us at: <strong>zhaoyuan@henu.edu.cn</strong></p>
+                <p>The Key Laboratory of Natural Medicine and Immuno-Engineering, Henan University</p>
+                <p>Kaifeng, Henan 475004, P.R. China</p>
+                <p>Key Laboratory Building, Room 521</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'http://127.0.0.1:8000';
+        let currentPage = 1;
+        const pageSize = 10;
+        let distributionChart;
+        let availableModels = [];
+        let defaultModel = '';
+        const loader = document.getElementById('loader');
+        const resultsTableBody = document.getElementById('results-body');
+        const lipinskiTableBody = document.getElementById('lipinski-body');
+        const paginationControls = document.getElementById('pagination-controls');
+        const modelSelect = document.getElementById('model-select');
+        const modelInfo = document.getElementById('model-info');
+        const chartModelSelect = document.getElementById('chart-model-select');
+        const resultsModelFilter = document.getElementById('results-model-filter');
+        const downloadModelFilter = document.getElementById('download-model-filter');
+        const chartContent = document.getElementById('chart-content');
+        const collapseIcon = document.querySelector('.collapse-icon');
+        const mainNavbar = document.getElementById('mainNavbar');
+        const navbarLinks = document.getElementById('navbarLinks');
+        const downloadBtn = document.getElementById('download-btn');
+        const downloadFormat = document.getElementById('download-format');
+        const downloadPreviewContent = document.getElementById('download-preview-content');
+        
+        // 排序状态变量
+        let sortField = '';
+        let sortDirection = 'asc'; // 'asc' 升序, 'desc' 降序
+        let allResults = []; // 存储所有结果（新结果置顶）
+        let sortedResultsCache = null; // 缓存排序结果
+        let lastSortField = '';
+        let lastSortDirection = '';
+        let resultIdCounter = 1; // 用于生成唯一ID
+        
+        // 导航功能
+        function navigateTo(page) {
+            document.querySelectorAll('.page-content').forEach(el => {
+                el.classList.remove('active');
+            });
+            
+            document.getElementById(`${page}-page`).classList.add('active');
+            
+            document.querySelectorAll('.navbar-links a').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`.navbar-links a[onclick="navigateTo('${page}')"]`).classList.add('active');
+            
+            if (window.innerWidth <= 768 && navbarLinks.classList.contains('show')) {
+                navbarLinks.classList.remove('show');
+            }
+            
+            if (page === 'predict' && availableModels.length === 0) {
+                loadModels();
+            }
+        }
+        
+        // 移动端导航栏切换
+        function toggleNavbar() {
+            navbarLinks.classList.toggle('show');
+            const toggleIcon = document.querySelector('.navbar-toggle i');
+            if (navbarLinks.classList.contains('show')) {
+                toggleIcon.classList.remove('fa-bars');
+                toggleIcon.classList.add('fa-times');
+            } else {
+                toggleIcon.classList.remove('fa-times');
+                toggleIcon.classList.add('fa-bars');
+            }
+        }
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 10) {
+                mainNavbar.classList.add('scrolled');
+            } else {
+                mainNavbar.classList.remove('scrolled');
+            }
+        });
+        
+        function toggleChartPanel() {
+            chartContent.classList.toggle('show');
+            collapseIcon.classList.toggle('rotate');
+            if (chartContent.classList.contains('show') && !distributionChart) {
+                updateDistributionChart();
+            } else if (chartContent.classList.contains('show') && distributionChart) {
+                distributionChart.resize();
+            }
+        }
+        
+        window.addEventListener('resize', () => {
+            if (distributionChart) {
+                distributionChart.resize();
+            }
+            
+            if (window.innerWidth > 768) {
+                navbarLinks.classList.remove('show');
+                const toggleIcon = document.querySelector('.navbar-toggle i');
+                toggleIcon.classList.remove('fa-times');
+                toggleIcon.classList.add('fa-bars');
+            }
+        });
+        
+        async function apiRequest(endpoint, options = {}) {
+            loader.style.display = 'block';
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    throw new Error(error.detail || 'An unknown error occurred');
+                }
+                return response.json();
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+                return null;
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+        
+        async function loadModels() {
+            const data = await apiRequest('/models');
+            if (data && data.available_models && data.available_models.length > 0) {
+                availableModels = data.available_models;
+                defaultModel = data.default_model || availableModels[0];
+                modelSelect.innerHTML = '';
+                availableModels.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    if (model === defaultModel) {
+                        option.selected = true;
+                    }
+                    modelSelect.appendChild(option);
+                });
+                resultsModelFilter.innerHTML = '<option value="">All Models</option>';
+                downloadModelFilter.innerHTML = '<option value="">All Models</option>';
+                availableModels.forEach(model => {
+                    const resultsOption = document.createElement('option');
+                    const downloadOption = document.createElement('option');
+                    resultsOption.value = model;
+                    downloadOption.value = model;
+                    resultsOption.textContent = model;
+                    downloadOption.textContent = model;
+                    resultsModelFilter.appendChild(resultsOption);
+                    downloadModelFilter.appendChild(downloadOption);
+                });
+                modelInfo.textContent = `Default model: ${defaultModel}`;
+            } else {
+                modelSelect.innerHTML = '<option value="">No model available</option>';
+                resultsModelFilter.innerHTML = '<option value="">All Models</option>';
+                downloadModelFilter.innerHTML = '<option value="">All Models</option>';
+                modelInfo.textContent = 'No available model detected, please check service status';
+            }
+        }
+        
+        // 核心功能：预测成功后处理逻辑 - 新结果置顶
+        async function handlePrediction(apiCallPromise, customName = null) {
+            const newResults = await apiCallPromise;
+            console.log("新预测结果:", newResults);
+
+            if (newResults && Array.isArray(newResults)) {
+                // 为每个新结果添加唯一ID，并设置分子名称（如果提供）
+                const resultsWithIds = newResults.map((item, index) => {
+                    // 如果有自定义名称且是单个分子，使用自定义名称
+                    let moleculeName = item.molecule_name || `Molecule-${resultIdCounter}`;
+                    if (customName && newResults.length === 1) {
+                        moleculeName = customName;
+                    }
+                    
+                    return {
+                        id: resultIdCounter++,
+                        ...item,
+                        molecule_name: moleculeName,
+                        timestamp: new Date().getTime() // 添加时间戳用于默认排序
+                    };
+                });
+                
+                // 新结果置顶：添加到数组开头
+                allResults = [...resultsWithIds, ...allResults];
+                
+                // 重置到第一页，确保用户看到最新结果
+                currentPage = 1;
+                
+                // 重新加载结果
+                fetchResults(1, resultsModelFilter.value);
+                
+                // 同步更新所有相关视图
+                updateDownloadPreview();
+                if (chartContent.classList.contains('show')) {
+                    updateDistributionChart();
+                }
+                
+                // 显示提示信息
+                alert(`预测完成！已添加 ${newResults.length} 个新结果，现在共显示 ${allResults.length} 个结果。`);
+            } else if (newResults) {
+                // 处理单个结果的情况
+                let moleculeName = newResults.molecule_name || `Molecule-${resultIdCounter}`;
+                if (customName) {
+                    moleculeName = customName;
+                }
+                
+                const resultWithId = {
+                    id: resultIdCounter++,
+                    ...newResults,
+                    molecule_name: moleculeName,
+                    timestamp: new Date().getTime() // 添加时间戳用于默认排序
+                };
+                
+                // 新结果置顶
+                allResults.unshift(resultWithId);
+                
+                // 重置到第一页
+                currentPage = 1;
+                
+                // 重新加载结果
+                fetchResults(1, resultsModelFilter.value);
+                
+                // 同步更新视图
+                updateDownloadPreview();
+                if (chartContent.classList.contains('show')) {
+                    updateDistributionChart();
+                }
+                
+                alert(`预测完成！现在共显示 ${allResults.length} 个结果。`);
+            }
+        }
+        
+        async function submitSmiles() {
+            const smilesInput = document.getElementById('smiles-input').value;
+            const moleculeName = document.getElementById('molecule-name').value.trim();
+            const modelName = document.getElementById('model-select').value;
+            
+            if (!smilesInput.trim()) {
+                alert('Please enter a SMILES string.');
+                return;
+            }       
+            if (!modelName) {
+                alert('Please select a forecast model.');
+                return;
+            }        
+            const params = new URLSearchParams({ 
+                smiles: smilesInput, 
+                model_name: modelName 
+            });
+            await handlePrediction(
+                apiRequest(`/predict?${params.toString()}`, { method: 'POST' }),
+                moleculeName || null
+            );
+        }
+
+        async function submitDrawing() {
+            const ketcherFrame = document.getElementById('ketcher-frame');
+            const ketcher = ketcherFrame.contentWindow.ketcher;
+            const moleculeName = document.getElementById('draw-molecule-name').value.trim();
+            const modelName = document.getElementById('model-select').value;
+            
+            if (!ketcher) {
+                alert('Ketcher is not loaded yet. Please wait a moment and try again.');
+                return;
+            }
+
+            try {
+                const smiles = await ketcher.getSmiles();
+
+                if (!smiles) {
+                    alert('Please draw a molecule.');
+                    return;
+                }
+                if (!modelName) {
+                    alert('Please select a forecast model.');
+                    return;
+                }
+
+                const params = new URLSearchParams({
+                    smiles: smiles,
+                    model_name: modelName
+                });
+                await handlePrediction(
+                    apiRequest(`/predict?${params.toString()}`, { method: 'POST' }),
+                    moleculeName || null
+                );
+
+            } catch (error) {
+                alert('Could not get molecule from the drawing canvas. Error: ' + error);
+            }
+        }
+
+        async function submitCsv() {
+            const csvUpload = document.getElementById('csv-upload').files[0];
+            const modelName = document.getElementById('model-select').value;
+            
+            if (!csvUpload) {
+                alert('Please select a CSV file.');
+                return;
+            }       
+            if (!modelName) {
+                alert('Please select a forecast model.');
+                return;
+            }       
+            const formData = new FormData();
+            formData.append('file', csvUpload);
+            formData.append('model_name', modelName);        
+            await handlePrediction(
+                apiRequest('/upload_csv', { 
+                    method: 'POST', 
+                    body: formData 
+                })
+            );
+        }
+        
+        // 核心功能：获取所有结果并在表格中显示
+        async function fetchResults(page = 1, modelFilter = '') {
+            currentPage = page;
+
+            // 应用模型筛选
+            let filteredResults = [...allResults];
+            if (modelFilter) {
+                filteredResults = filteredResults.filter(item => item.model_used === modelFilter);
+            }
+
+            // 排序逻辑 - 默认按时间戳降序（最新的在前面）
+            let sortedResults;
+            if (sortField && (lastSortField !== sortField || lastSortDirection !== sortDirection)) {
+                sortedResults = sortResults([...filteredResults], sortField, sortDirection);
+                sortedResultsCache = sortedResults;
+                lastSortField = sortField;
+                lastSortDirection = sortDirection;
+            } else if (sortedResultsCache && !modelFilter) {
+                sortedResults = sortedResultsCache;
+            } else {
+                // 默认排序：按时间戳降序（最新的在前面）
+                sortedResults = [...filteredResults].sort((a, b) => b.timestamp - a.timestamp);
+            }
+
+            // 分页逻辑
+            const startIndex = (currentPage - 1) * pageSize;
+            const currentPageResults = sortedResults.slice(startIndex, startIndex + pageSize);
+            
+            renderTable(currentPageResults); // 渲染当前页数据
+            renderPagination({
+                current_page: currentPage,
+                total_pages: Math.ceil(sortedResults.length / pageSize),
+                total_items: sortedResults.length
+            });
+            
+            // 更新下载相关状态
+            updateDownloadButtonStatus();
+            updateDownloadPreview(modelFilter);
+        }
+        
+        // 排序函数
+        function sortResults(results, field, direction) {
+            return [...results].sort((a, b) => {
+                // 处理空值情况 - 空值排在最后
+                if (a[field] === undefined || a[field] === null) return 1;
+                if (b[field] === undefined || b[field] === null) return -1;
+                
+                // 数值比较
+                if (typeof a[field] === 'number' && typeof b[field] === 'number') {
+                    const diff = a[field] - b[field];
+                    if (diff !== 0) {
+                        return direction === 'asc' ? diff : -diff;
+                    }
+                    // 当主要排序字段值相等时，使用时间戳作为次要排序条件确保最新的在前
+                    return b.timestamp - a.timestamp;
+                }
+                
+                // 字符串比较
+                const strA = String(a[field]).toLowerCase();
+                const strB = String(b[field]).toLowerCase();
+                const comparison = strA.localeCompare(strB, undefined, { sensitivity: 'base' });
+                if (comparison !== 0) {
+                    return direction === 'asc' ? comparison : -comparison;
+                }
+                // 当主要排序字段值相等时，使用时间戳作为次要排序条件确保最新的在前
+                return b.timestamp - a.timestamp;
+            });
+        }
+        
+        // 清除所有排序指示符
+        function clearSortIndicators() {
+            document.querySelectorAll('.sort-indicator').forEach(indicator => {
+                indicator.textContent = '';
+            });
+        }
+        
+        // 设置排序指示符
+        function setSortIndicator(field) {
+            clearSortIndicators();
+            const indicator = document.querySelector(`.sortable-header[data-sort="${field}"] .sort-indicator`);
+            if (indicator) {
+                indicator.textContent = sortDirection === 'asc' ? '↑' : '↓';
+            }
+        }
+        
+        function renderTable(items) {
+            resultsTableBody.innerHTML = '';
+            lipinskiTableBody.innerHTML = '';
+
+            if (!Array.isArray(items) || items.length === 0) {
+                resultsTableBody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No results yet.</td></tr>';
+                lipinskiTableBody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No results yet.</td></tr>';
+                return;
+            }
+            
+            // 获取当前页的起始ID
+            const startId = (currentPage - 1) * pageSize + 1;
+            
+            items.forEach((item, index) => {
+                if (!item || typeof item !== 'object') {
+                    console.warn("Skip an invalid entry:", item);
+                    return;
+                }           
+                const smiles = item.smiles || 'Invalid SMILES';
+                const pic50Value = item.pic50;
+                const modelUsed = item.model_used || 'Unknown Model';
+                const moleculeName = item.molecule_name || `Molecule-${item.id}`;
+                const pic50Display = (typeof pic50Value === 'number') ? pic50Value.toFixed(3) : 'N/A';
+                const currentId = startId + index;            
+            
+                // 预测结果表格行
+                const resultsRow = document.createElement('tr');
+                resultsRow.innerHTML = `
+                    <td>${currentId}</td>
+                    <td>${moleculeName}</td>
+                    <td><code>${smiles}</code></td>
+                    <td>${pic50Display}</td>
+                    <td>${modelUsed}</td>
+                    <td><img src="${API_BASE_URL}/mol_image?smiles=${encodeURIComponent(smiles)}" alt="分子 ${smiles} 的结构图" width="100"></td>
+                `;
+                resultsRow.dataset.id = item.id || currentId;
+                resultsTableBody.appendChild(resultsRow);
+
+                // Lipinski规则表格行
+                const lipinskiRow = document.createElement('tr');
+                lipinskiRow.innerHTML = `
+                    <td>${currentId}</td>
+                    <td>${moleculeName}</td>
+                    <td><code>${smiles}</code></td>
+                    <td>${item.mol_wt ? item.mol_wt.toFixed(2) : 'N/A'}</td>
+                    <td>${item.logp ? item.logp.toFixed(2) : 'N/A'}</td>
+                    <td>${item.hbd !== undefined ? item.hbd : 'N/A'}</td>
+                    <td>${item.hba !== undefined ? item.hba : 'N/A'}</td>
+                `;
+                lipinskiRow.dataset.id = item.id || currentId;
+                lipinskiTableBody.appendChild(lipinskiRow);
+            });
+        }
+        
+        function renderPagination(data) {
+            paginationControls.innerHTML = '';
+            if (data.total_pages <= 1) return;
+            
+            const prevButton = document.createElement('button');
+            prevButton.innerText = '« Prev';
+            prevButton.disabled = data.current_page === 1;
+            prevButton.onclick = () => fetchResults(
+                data.current_page - 1, 
+                resultsModelFilter.value
+            );
+            paginationControls.appendChild(prevButton);
+            
+            const pageInfo = document.createElement('span');
+            pageInfo.innerText = ` Page ${data.current_page}  of ${data.total_pages}  (Total: ${data.total_items} results) `;
+            paginationControls.appendChild(pageInfo);
+            
+            const nextButton = document.createElement('button');
+            nextButton.innerText = 'Next »';
+            nextButton.disabled = data.current_page === data.total_pages;
+            nextButton.onclick = () => fetchResults(
+                data.current_page + 1, 
+                resultsModelFilter.value
+            );
+            paginationControls.appendChild(nextButton);
+        }    
+        
+        async function updateDistributionChart(modelName = '') {
+            if (!chartContent.classList.contains('show')) return;
+            
+            // 使用本地缓存的所有结果来生成图表
+            let chartData = [...allResults];
+            
+            // 应用模型筛选
+            if (modelName) {
+                chartData = chartData.filter(item => item.model_used === modelName);
+            }
+            
+            // 如果没有数据，不绘制图表
+            if (chartData.length === 0) {
+                if (distributionChart) {
+                    distributionChart.destroy();
+                    distributionChart = null;
+                }
+                const ctx = document.getElementById('distributionChart').getContext('2d');
+                ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                return;
+            }
+            
+            // 提取pIC50值并生成分布数据
+            const pic50Values = chartData.map(item => item.pic50).filter(v => v !== null && v !== undefined);
+            
+            // 创建分布区间（0-10，步长0.5）
+            const bins = [];
+            const binSize = 0.5;
+            const start = 0;
+            const end = 10;
+            
+            for (let i = start; i < end; i += binSize) {
+                bins.push({
+                    range: `${i.toFixed(1)} - ${(i + binSize).toFixed(1)}`,
+                    count: 0
+                });
+            }
+            
+            // 统计每个区间的数量
+            pic50Values.forEach(value => {
+                if (value >= start && value < end) {
+                    const index = Math.floor((value - start) / binSize);
+                    if (index >= 0 && index < bins.length) {
+                        bins[index].count++;
+                    }
+                }
+            });
+            
+            const ctx = document.getElementById('distributionChart').getContext('2d');
+            if (distributionChart) {
+                distributionChart.destroy();
+            }       
+            const chartTitle = modelName ? `pIC50 Distribution (${modelName})` : `pIC50 Distribution (All Models - ${allResults.length} total)`;       
+            distributionChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: bins.map(bin => bin.range),
+                    datasets: [{
+                        label: 'Number of Compounds',
+                        data: bins.map(bin => bin.count),
+                        backgroundColor: 'rgba(63, 81, 181, 0.5)',
+                        borderColor: 'rgba(63, 81, 181, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: chartTitle,
+                            font: { size: 16 }
+                        },
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true, 
+                            title: { display: true, text: 'Number of compounds', font: { size: 14 } },
+                            ticks: { font: { size: 12 } }
+                        },
+                        x: { 
+                            title: { display: true, text: 'Predicted pIC50 range', font: { size: 14 } },
+                            ticks: { font: { size: 12 } }
+                        }
+                    },
+                    layout: {
+                        padding: {
+                            top: 10,
+                            right: 10,
+                            bottom: 20,
+                            left: 10
+                        }
+                    },
+                    animation: {
+                        duration: 0
+                    }
+                }
+            });
+        }
+
+        function openInputTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.querySelectorAll(".input-section .tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.querySelectorAll(".input-section .tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+
+        function openResultsTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.querySelectorAll("#results-section .tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.querySelectorAll("#results-section .tab-button");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+            
+            if (tabName === 'download-tab') {
+                updateDownloadPreview(downloadModelFilter.value);
+            }
+        }
+        
+        // 排序事件处理
+        function handleSort(field) {
+            if (sortField === field) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortDirection = 'asc';
+            }
+            
+            setSortIndicator(field);
+            fetchResults(currentPage, resultsModelFilter.value);
+        }
+
+        // 下载功能相关函数
+        function updateDownloadButtonStatus() {
+            const filteredResults = getFilteredResultsForDownload();
+            downloadBtn.disabled = filteredResults.length === 0;
+            
+            if (filteredResults.length === 0) {
+                downloadBtn.innerHTML = '<i class="fa fa-download"></i> No Results to Download';
+            } else {
+                downloadBtn.innerHTML = `<i class="fa fa-download"></i> Download (${filteredResults.length} Items)`;
+            }
+        }
+        
+        function getFilteredResultsForDownload() {
+            const modelFilter = downloadModelFilter.value;
+            let filteredResults = [...allResults];
+            
+            if (modelFilter) {
+                filteredResults = filteredResults.filter(item => item.model_used === modelFilter);
+            }
+            
+            // 保持排序 - 最新的在前面
+            return [...filteredResults].sort((a, b) => b.timestamp - a.timestamp);
+        }
+        
+        function updateDownloadPreview(modelFilter = '') {
+            const filteredResults = getFilteredResultsForDownload(modelFilter);
+            const previewResults = filteredResults.slice(0, 5);
+            
+            if (previewResults.length === 0) {
+                downloadPreviewContent.innerHTML = '<p>No results available to preview.</p>';
+                return;
+            }
+            
+            const firstItem = previewResults[0];
+            const columns = Object.keys(firstItem).filter(key => 
+                !['id', 'created_at', 'updated_at', 'timestamp'].includes(key)
+            );
+            
+            let tableHtml = '<table class="preview-table">';
+            tableHtml += '<thead><tr>';
+            columns.forEach(col => {
+                const displayName = col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                tableHtml += `<th>${displayName}</th>`;
+            });
+            tableHtml += '</tr></thead>';
+            
+            tableHtml += '<tbody>';
+            previewResults.forEach((item, index) => {
+                tableHtml += '<tr>';
+                columns.forEach(col => {
+                    const value = item[col];
+                    let displayValue;
+                    if (typeof value === 'number') {
+                        displayValue = value.toFixed(3);
+                    } else if (value === undefined || value === null) {
+                        displayValue = 'N/A';
+                    } else if (typeof value === 'string' && value.length > 30) {
+                        displayValue = `${value.slice(0, 30)}...`;
+                    } else {
+                        displayValue = value;
+                    }
+                    tableHtml += `<td>${displayValue}</td>`;
+                });
+                tableHtml += '</tr>';
+            });
+            tableHtml += '</tbody></table>';
+            
+            if (filteredResults.length > 5) {
+                tableHtml += `<p style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+                    Showing first 5 of ${filteredResults.length} total items.
+                </p>`;
+            }
+            
+            downloadPreviewContent.innerHTML = tableHtml;
+        }
+        
+        async function downloadResults() {
+            const format = downloadFormat.value;
+            const filteredResults = getFilteredResultsForDownload();
+            const timestamp = new Date().toISOString().replace(/[-:\.T]/g, '').slice(0, 14);
+            const fileName = `OGT_pIC50_Predictions_${timestamp}`;
+            
+            try {
+                switch (format) {
+                    case 'csv':
+                        downloadAsCSV(filteredResults, fileName);
+                        break;
+                    case 'excel':
+                        downloadAsExcel(filteredResults, fileName);
+                        break;
+                    case 'json':
+                        downloadAsJSON(filteredResults, fileName);
+                        break;
+                    default:
+                        alert('Unsupported file format');
+                }
+            } catch (error) {
+                alert(`Failed to download file: ${error.message}`);
+                console.error('Download error:', error);
+            }
+        }
+        
+        function downloadAsCSV(data, fileName) {
+            if (data.length === 0) return;
+            
+            const columns = Object.keys(data[0]).filter(key => 
+                !['id', 'created_at', 'updated_at', 'timestamp'].includes(key)
+            );
+            const csvContent = [
+                columns.map(col => col.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())).join(','),
+                ...data.map(row => 
+                    columns.map(col => {
+                        const value = row[col];
+                        if (typeof value === 'string' && (value.includes(',') || value.includes('"') || value.includes('\n'))) {
+                            return `"${value.replace(/"/g, '""')}"`;
+                        }
+                        return value === undefined || value === null ? '' : value;
+                    }).join(',')
+                )
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${fileName}.csv`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        function downloadAsExcel(data, fileName) {
+            if (data.length === 0) return;
+            
+            // 清理不需要的字段
+            const cleanedData = data.map(item => {
+                const cleaned = {...item};
+                delete cleaned.id;
+                delete cleaned.created_at;
+                delete cleaned.updated_at;
+                delete cleaned.timestamp;
+                return cleaned;
+            });
+            
+            const workbook = XLSX.utils.book_new();
+            const worksheet = XLSX.utils.json_to_sheet(cleanedData);
+            
+            const wscols = Object.keys(cleanedData[0]).map(() => ({ wch: 15 }));
+            worksheet['!cols'] = wscols;
+            
+            XLSX.utils.book_append_sheet(workbook, worksheet, 'OGT_pIC50_Predictions');
+            XLSX.writeFile(workbook, `${fileName}.xlsx`);
+        }
+        
+        function downloadAsJSON(data, fileName) {
+            if (data.length === 0) return;
+            
+            // 清理不需要的字段
+            const cleanedData = data.map(item => {
+                const cleaned = {...item};
+                delete cleaned.id;
+                delete cleaned.created_at;
+                delete cleaned.updated_at;
+                delete cleaned.timestamp;
+                return cleaned;
+            });
+            
+            const jsonContent = JSON.stringify(cleanedData, null, 2);
+            const blob = new Blob([jsonContent], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${fileName}.json`);
+            link.style.display = 'none';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        // 事件监听
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (window.innerWidth <= 768) {
+                navbarLinks.style.display = 'none';
+            }
+            
+            if (document.getElementById('predict-page').classList.contains('active')) {
+                await loadModels();
+                fetchResults();
+            }
+            
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const field = header.getAttribute('data-sort');
+                    handleSort(field);
+                });
+            });
+            
+            chartModelSelect.addEventListener('change', () => {
+                updateDistributionChart(document.querySelector('input[name="chart-model"]:checked').value);
+            });
+            
+            resultsModelFilter.addEventListener('change', () => {
+                downloadModelFilter.value = resultsModelFilter.value;
+                sortField = '';
+                sortDirection = 'asc';
+                sortedResultsCache = null;
+                lastSortField = '';
+                lastSortDirection = '';
+                clearSortIndicators();
+                fetchResults(1, resultsModelFilter.value);
+            });
+            
+            downloadModelFilter.addEventListener('change', () => {
+                updateDownloadButtonStatus();
+                updateDownloadPreview();
+            });
+            
+            downloadFormat.addEventListener('change', () => {
+                updateDownloadButtonStatus();
+            });
+            
+            document.querySelectorAll('input[name="chart-model"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    if (radio.checked) {
+                        updateDistributionChart(radio.value);
+                    }
+                });
+            });        
+        });
+    </script>
+</body>
+</html>
