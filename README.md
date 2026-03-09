@@ -3,7 +3,6 @@ The OGT pIC50 Predictor platform integrates machine learning technology with an 
 ## Installation
 ```bash
 conda create -n POGT python=3.12
-
 conda activate POGT
 ```
 ## Overview
