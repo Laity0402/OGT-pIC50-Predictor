@@ -15,4 +15,4 @@ nohup uvicorn main:app --host 0.0.0.0 --port 8000 --reload &
 open index.html
 ```
 ## Overview
-<img src="fronend/image/2.git" width="8192" height="3598" alt="7">
+<img src="frontend/image/2.png" width="1200" height="auto"> 
