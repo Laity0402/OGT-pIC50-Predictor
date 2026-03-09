@@ -15,4 +15,4 @@ nohup uvicorn main:app --host 0.0.0.0 --port 8000 --reload &
 open index.html
 ```
 ## Overview
-(frondend/image/image1.png)
+<img src="images/screenshots/home.png" width="8192" height="3598">
