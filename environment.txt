@@ -86,4 +86,3 @@ wheel==0.42.0
 xlrd==2.0.1
 xlsxwriter==3.1.9
 zipp==3.17.0
-igraph==1.0.0
